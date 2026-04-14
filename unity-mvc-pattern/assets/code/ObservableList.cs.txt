@@ -1,0 +1,41 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Standard.Patterns.MVC {
+    /// <summary>
+    /// A decorator for List<T> that publishes events when the list structure changes.
+    /// Essential for dynamic UI like inventory or hotbars.
+    /// </summary>
+    [Serializable]
+    public class ObservableList<T> : IList<T> {
+        [SerializeField] private List<T> list = new List<T>();
+        
+        public event Action<List<T>> OnChanged;
+
+        public T this[int index] { 
+            get => list[index]; 
+            set { list[index] = value; Invoke(); } 
+        }
+
+        public int Count => list.Count;
+        public bool IsReadOnly => false;
+
+        public void Add(T item) { list.Add(item); Invoke(); }
+        public void Clear() { list.Clear(); Invoke(); }
+        public bool Contains(T item) => list.Contains(item);
+        public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
+        public IEnumerator<T> GetEnumerator() => list.GetEnumerator();
+        public int IndexOf(T item) => list.IndexOf(item);
+        public void Insert(int index, T item) { list.Insert(index, item); Invoke(); }
+        public bool Remove(T item) { var success = list.Remove(item); if (success) Invoke(); return success; }
+        public void RemoveAt(int index) { list.RemoveAt(index); Invoke(); }
+        IEnumerator IEnumerable.GetEnumerator() => list.GetEnumerator();
+
+        private void Invoke() {
+            Debug.Log($"[MVC] Status: ObservableList Changed | Data: Count {list.Count}");
+            OnChanged?.Invoke(list);
+        }
+    }
+}

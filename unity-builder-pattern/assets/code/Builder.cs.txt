@@ -1,0 +1,45 @@
+using UnityEngine;
+
+namespace Standard.Patterns {
+    /// <summary>
+    /// Generic builder interface for step-by-step object construction.
+    /// </summary>
+    public interface IBuilder<T> {
+        T Build();
+    }
+
+    /// <summary>
+    /// Fluent builder base class for GameObject construction.
+    /// Provides chainable methods for setting up objects.
+    /// </summary>
+    public class GameObjectBuilder : IBuilder<GameObject> {
+        private GameObject _gameObject;
+        private Vector3 _position = Vector3.zero;
+        private Quaternion _rotation = Quaternion.identity;
+
+        public GameObjectBuilder(string name) {
+            _gameObject = new GameObject(name);
+        }
+
+        public GameObjectBuilder WithPosition(Vector3 position) {
+            _position = position;
+            return this;
+        }
+
+        public GameObjectBuilder WithRotation(Quaternion rotation) {
+            _rotation = rotation;
+            return this;
+        }
+
+        public GameObjectBuilder AddComponent<T>() where T : Component {
+            _gameObject.AddComponent<T>();
+            return this;
+        }
+
+        public GameObject Build() {
+            _gameObject.transform.position = _position;
+            _gameObject.transform.rotation = _rotation;
+            return _gameObject;
+        }
+    }
+}

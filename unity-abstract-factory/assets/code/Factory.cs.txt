@@ -1,0 +1,31 @@
+using UnityEngine;
+
+namespace Standard.Patterns {
+    /// <summary>
+    /// Generic factory interface for creating objects of type T.
+    /// </summary>
+    public interface IFactory<T> {
+        T Create();
+    }
+
+    /// <summary>
+    /// ScriptableObject-based factory for data-driven object creation.
+    /// Use this for complex families of related objects (e.g., themed equipment sets).
+    /// </summary>
+    public abstract class Factory<T> : ScriptableObject, IFactory<T> where T : Object {
+        public abstract T Create();
+    }
+
+    /// <summary>
+    /// Simple prefab factory for quick GameObject instantiation.
+    /// Use this for straightforward prefab spawning without complex logic.
+    /// </summary>
+    public class PrefabFactory : ScriptableObject {
+        [SerializeField] private GameObject prefab;
+        [SerializeField] private Transform spawnPoint;
+
+        public GameObject Create() {
+            return Instantiate(prefab, spawnPoint != null ? spawnPoint.position : Vector3.zero, Quaternion.identity);
+        }
+    }
+}

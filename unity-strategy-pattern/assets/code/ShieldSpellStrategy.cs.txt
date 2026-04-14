@@ -1,0 +1,18 @@
+using UnityEngine;
+
+namespace Platformer.Strategy {
+    /// <summary>
+    /// A simple strategy that instantiates a static object (Shield) at the origin.
+    /// </summary>
+    [CreateAssetMenu(fileName = "ShieldSpell", menuName = "Spells/Shield")]
+    public class ShieldSpellStrategy : SpellStrategy {
+        [SerializeField] private GameObject shieldPrefab;
+        [SerializeField] private float duration = 5f;
+
+        public override void CastSpell(Transform origin) {
+            // Instantiate shield at origin (and maybe adjust height)
+            var shield = Instantiate(shieldPrefab, origin.position, origin.rotation);
+            Destroy(shield, duration);
+        }
+    }
+}

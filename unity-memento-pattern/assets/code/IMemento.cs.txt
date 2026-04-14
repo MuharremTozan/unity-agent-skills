@@ -1,0 +1,24 @@
+namespace Standard.Patterns.Memento {
+    /// <summary>
+    /// Contract for an object that can capture its state into a memento.
+    /// </summary>
+    public interface IOriginator<T> {
+        IMemento<T> Save();
+        void Restore(IMemento<T> memento);
+    }
+
+    /// <summary>
+    /// Type-safe container for state snapshots.
+    /// </summary>
+    public interface IMemento<T> {
+        T State { get; }
+    }
+
+    /// <summary>
+    /// Generic implementation of a Memento.
+    /// </summary>
+    public class Memento<T> : IMemento<T> {
+        public T State { get; }
+        public Memento(T state) => State = state;
+    }
+}

@@ -1,0 +1,40 @@
+using UnityEngine;
+using Standard.Patterns.Singleton; // Assumes previous skill is available
+
+namespace Standard.Systems.Persistence {
+    [System.Serializable]
+    public class GameData {
+        public string PlayerName;
+        public int LastLevelIndex;
+        public Vector3 PlayerPosition;
+    }
+
+    /// <summary>
+    /// Central manager for saving and loading game state.
+    /// Inherits from PersistentSingleton to ensure availability across scenes.
+    /// </summary>
+    public class SaveLoadManager : PersistentSingleton<SaveLoadManager> {
+        private IDataService dataService;
+        public GameData CurrentData { get; private set; }
+
+        protected override void Awake() {
+            base.Awake();
+            // Defaulting to File/JSON setup
+            dataService = new FileDataService(new JsonSerializer());
+            CurrentData = new GameData();
+        }
+
+        public void SaveGame(string saveName = "DefaultSave") {
+            dataService.Save(saveName, CurrentData);
+            Debug.Log($"[SaveLoad] Status: Game Saved | Data: {saveName}");
+        }
+
+        public void LoadGame(string saveName = "DefaultSave") {
+            var loadedData = dataService.Load<GameData>(saveName);
+            if (loadedData != null) {
+                CurrentData = loadedData;
+                Debug.Log($"[SaveLoad] Status: Game Loaded | Data: {saveName}");
+            }
+        }
+    }
+}

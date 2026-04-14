@@ -1,0 +1,45 @@
+using UnityEditor;
+using UnityEngine;
+using System.IO;
+
+namespace UnityAssemblyManagement.Editor {
+    public static class AsmdefScaffolder {
+        [MenuItem("Tools/Ohm-Yura/Assembly/Scaffold Module")]
+        public static void ScaffoldModule () {
+            string path = EditorUtility.OpenFolderPanel("Select Module Root", "Assets", "");
+            if ( string.IsNullOrEmpty(path) ) return;
+
+            string moduleName = Path.GetFileName(path);
+            
+            CreateAssembly(Path.Combine(path, "Runtime"), moduleName);
+            CreateAssembly(Path.Combine(path, "Editor"), moduleName + ".Editor", true);
+            CreateAssembly(Path.Combine(path, "Tests"), moduleName + ".Tests", false, true);
+            
+            AssetDatabase.Refresh();
+            Debug.Log($"[Assembly] Status: Scaffolding Complete | Data: Module={moduleName}");
+        }
+
+        private static void CreateAssembly (string folderPath, string name, bool isEditor = false, bool isTest = false) {
+            if ( !Directory.Exists(folderPath) ) Directory.CreateDirectory(folderPath);
+            
+            string asmdefPath = Path.Combine(folderPath, name + ".asmdef");
+            if ( File.Exists(asmdefPath) ) return;
+
+            string content = $@"{{
+    ""name"": ""{name}"",
+    ""rootNamespace"": ""{name}"",
+    ""references"": [],
+    ""includePlatforms"": [{(isEditor ? "\"Editor\"" : "")}],
+    ""excludePlatforms"": [],
+    ""allowUnsafeCode"": false,
+    ""overrideReferences"": false,
+    ""precompiledReferences"": [],
+    ""autoReferenced"": true,
+    ""defineConstraints"": [],
+    ""versionDefines"": [],
+    ""noEngineReferences"": false
+}}";
+            File.WriteAllText(asmdefPath, content);
+        }
+    }
+}

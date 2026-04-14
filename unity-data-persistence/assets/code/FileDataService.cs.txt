@@ -1,0 +1,68 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
+
+namespace Standard.Systems.Persistence {
+
+    /// <summary>
+    /// Concrete IDataService that persists GameData as JSON files at
+    /// Application.persistentDataPath. Swap this with a CloudDataService
+    /// without touching any other part of the system.
+    /// </summary>
+    public class FileDataService : IDataService {
+        readonly ISerializer serializer;
+        readonly string dataPath;
+        readonly string fileExtension;
+
+        public FileDataService (ISerializer serializer) {
+            this.serializer  = serializer;
+            this.dataPath    = Application.persistentDataPath;
+            this.fileExtension = "json";
+        }
+
+        string GetPathToFile (string fileName) =>
+            Path.Combine(dataPath, string.Concat(fileName, ".", fileExtension));
+
+        public void Save (GameData data, bool overwrite = true) {
+            string path = GetPathToFile(data.Name);
+
+            if (!overwrite && File.Exists(path)) {
+                throw new IOException(
+                    $"[SaveLoad] Save file '{data.Name}.{fileExtension}' already exists.");
+            }
+
+            File.WriteAllText(path, serializer.Serialize(data));
+            Debug.Log($"[SaveLoad] Status: Game Saved | Data: Name={data.Name}");
+        }
+
+        public GameData Load (string name) {
+            string path = GetPathToFile(name);
+
+            if (!File.Exists(path)) {
+                throw new ArgumentException(
+                    $"[SaveLoad] No save file found | Data: Name={name}");
+            }
+
+            Debug.Log($"[SaveLoad] Status: Game Loaded | Data: Name={name}");
+            return serializer.Deserialize<GameData>(File.ReadAllText(path));
+        }
+
+        public void Delete (string name) {
+            string path = GetPathToFile(name);
+            if (File.Exists(path)) File.Delete(path);
+        }
+
+        public void DeleteAll () {
+            foreach (string filePath in Directory.GetFiles(dataPath))
+                File.Delete(filePath);
+        }
+
+        public IEnumerable<string> ListSaves () {
+            foreach (string path in Directory.EnumerateFiles(dataPath)) {
+                if (Path.GetExtension(path) == fileExtension)
+                    yield return Path.GetFileNameWithoutExtension(path);
+            }
+        }
+    }
+}

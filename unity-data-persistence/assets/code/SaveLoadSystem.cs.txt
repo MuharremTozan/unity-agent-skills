@@ -1,0 +1,105 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace Standard.Systems.Persistence {
+
+    // ─── GameData DTO ──────────────────────────────────────────────────────────
+    // Extend this class to add new saveable sub-systems (add a new XxxData field,
+    // then call Bind<XxxMono, XxxData>() in OnSceneLoaded).
+
+    [Serializable]
+    public class GameData {
+        public string Name;
+        public string CurrentLevelName;
+
+        // Add data sections here, e.g.:
+        // public PlayerData playerData;
+        // public InventoryData inventoryData;
+    }
+
+    // ─── SaveLoadSystem ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Central orchestrator for save/load. Attach to a persistent GameObject.
+    /// Inherit from PersistentSingleton (unity-singleton-pattern skill).
+    ///
+    /// USAGE:
+    ///   SaveLoadSystem.Instance.SaveGame();
+    ///   SaveLoadSystem.Instance.LoadGame("Slot1");
+    /// </summary>
+    public class SaveLoadSystem : MonoBehaviour {
+        [SerializeField] public GameData gameData;
+
+        IDataService dataService;
+
+        void Awake () {
+            dataService = new FileDataService(new JsonSerializer());
+        }
+
+        void OnEnable ()  => SceneManager.sceneLoaded += OnSceneLoaded;
+        void OnDisable () => SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        void OnSceneLoaded (Scene scene, LoadSceneMode mode) {
+            // Guard: skip non-gameplay scenes
+            if (scene.name == "Boot" || scene.name == "Menu") return;
+
+            // ── Bind each saveable sub-system here ────────────────────────────
+            // Bind<HeroMono, PlayerData>(gameData.playerData);
+            // Bind<InventoryMono, InventoryData>(gameData.inventoryData);
+        }
+
+        // ── Single-entity binding ──────────────────────────────────────────────
+        // Finds the first T in the scene and hands it reference to TData.
+        // If data is null (new game) creates a fresh TData with a matching Id.
+        protected void Bind<T, TData> (TData data)
+            where T     : MonoBehaviour, IBind<TData>
+            where TData : ISaveable, new() {
+            var entity = FindObjectsByType<T>(FindObjectsSortMode.None).FirstOrDefault();
+            if (entity == null) return;
+
+            if (data == null) data = new TData { Id = entity.Id };
+            entity.Bind(data);
+        }
+
+        // ── Multi-entity binding ───────────────────────────────────────────────
+        // Matches each scene entity to its saved data by GUID.
+        // Entities with no saved entry get a fresh TData (useful for enemies / spawners).
+        protected void Bind<T, TData> (List<TData> datas)
+            where T     : MonoBehaviour, IBind<TData>
+            where TData : ISaveable, new() {
+            var entities = FindObjectsByType<T>(FindObjectsSortMode.None);
+            foreach (var entity in entities) {
+                var data = datas.FirstOrDefault(d => d.Id == entity.Id);
+                if (data == null) {
+                    data = new TData { Id = entity.Id };
+                    datas.Add(data);
+                }
+                entity.Bind(data);
+            }
+        }
+
+        // ── Public API ─────────────────────────────────────────────────────────
+
+        public void NewGame (string gameName = "Game", string levelName = "Level1") {
+            gameData = new GameData { Name = gameName, CurrentLevelName = levelName };
+            SceneManager.LoadScene(gameData.CurrentLevelName);
+        }
+
+        public void SaveGame ()                    => dataService.Save(gameData);
+        public void ReloadGame ()                  => LoadGame(gameData.Name);
+        public void DeleteGame (string gameName)   => dataService.Delete(gameName);
+        public IEnumerable<string> ListSaves ()    => dataService.ListSaves();
+
+        public void LoadGame (string gameName) {
+            gameData = dataService.Load(gameName);
+
+            if (string.IsNullOrWhiteSpace(gameData.CurrentLevelName))
+                gameData.CurrentLevelName = "Level1";
+
+            SceneManager.LoadScene(gameData.CurrentLevelName);
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "name": "{{ASSEMBLY_NAME}}",
+    "rootNamespace": "{{DEFAULT_NAMESPACE}}",
+    "references": [
+        {{#if USE_GUIDS}}
+        "GUID:{{REFERENCED_GUID}}"
+        {{else}}
+        "{{REFERENCED_NAME}}"
+        {{/if}}
+    ],
+    "includePlatforms": [
+        {{#if IS_EDITOR}}
+        "Editor"
+        {{/if}}
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": {{ALLOW_UNSAFE}},
+    "overrideReferences": {{OVERRIDE_REFS}},
+    "precompiledReferences": [],
+    "autoReferenced": {{AUTO_REFERENCE}},
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": {{NO_ENGINE}}
+}

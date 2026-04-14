@@ -1,0 +1,26 @@
+using UnityEngine;
+using Standard.Patterns.Singleton;
+
+namespace Standard.Examples {
+    /// <summary>
+    /// Example of a Persistent Manager (allowed by project rules).
+    /// </summary>
+    public class GameManager : PersistentSingleton<GameManager> {
+        [Header("State")]
+        [SerializeField] private int currentScore;
+
+        public void AddScore(int amount) {
+            currentScore += amount;
+            Debug.Log($"[GameManager] Status: Score Updated | Data: {currentScore}");
+        }
+    }
+
+    /// <summary>
+    /// Example of a temporary UI Manager.
+    /// </summary>
+    public class UIManager : Singleton<UIManager> {
+        public void ShowVictoryScreen() {
+            Debug.Log("[UIManager] Status: Victory Screen Displayed | Data: Success");
+        }
+    }
+}

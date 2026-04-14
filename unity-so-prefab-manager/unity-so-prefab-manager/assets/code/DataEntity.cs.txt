@@ -1,0 +1,20 @@
+using UnityEngine;
+
+namespace Standard.Core {
+    /// <summary>
+    /// Base class for any MonoBehaviour that relies on a ScriptableObject for its data.
+    /// Provides a standardized way to link Data (SO) to Logic (Mono).
+    /// </summary>
+    public abstract class DataEntity<T> : MonoBehaviour where T : ScriptableObject {
+        [Header("Data Bridge")]
+        [SerializeField] protected T data;
+
+        public T GetData() => data;
+
+        protected virtual void Awake() {
+            if (data == null) {
+                Debug.LogError($"[{GetType().Name}] Status: Fail | Message: Missing ScriptableObject data on {gameObject.name}");
+            }
+        }
+    }
+}

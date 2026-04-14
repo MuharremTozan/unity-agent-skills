@@ -1,0 +1,40 @@
+using UnityEngine.UIElements;
+
+namespace Standard.UI.Procedural {
+    public static class UIToolkitExtensions {
+        /// <summary>
+        /// Creates a child element of type T, adds it to the parent, and applies a CSS class.
+        /// Enables fluent hiyerarşi construction.
+        /// </summary>
+        public static T CreateChild<T>(this VisualElement parent, string className = null) where T : VisualElement, new() {
+            var child = new T();
+            if (!string.IsNullOrEmpty(className)) child.AddToClassList(className);
+            parent.Add(child);
+            return child;
+        }
+
+        /// <summary>
+        /// Applies a CSS class to the element and returns it (for chaining).
+        /// </summary>
+        public static T WithClass<T>(this T element, string className) where T : VisualElement {
+            element.AddToClassList(className);
+            return element;
+        }
+
+        /// <summary>
+        /// Adds a manipulator to the element and returns it (for chaining).
+        /// </summary>
+        public static T WithManipulator<T>(this T element, IManipulator manipulator) where T : VisualElement {
+            element.AddManipulator(manipulator);
+            return element;
+        }
+
+        /// <summary>
+        /// Sets a name for the element and returns it (for chaining).
+        /// </summary>
+        public static T WithName<T>(this T element, string name) where T : VisualElement {
+            element.name = name;
+            return element;
+        }
+    }
+}

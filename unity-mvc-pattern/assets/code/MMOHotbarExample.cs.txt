@@ -1,0 +1,55 @@
+using System.Collections.Generic;
+using UnityEngine;
+using Standard.Patterns.MVC;
+
+namespace Standard.Examples {
+    // 1. MODEL: The Data (using ScriptableObjects for static data)
+    public class AbilityModel {
+        public ObservableList<Sprite> abilityIcons = new ObservableList<Sprite>();
+    }
+
+    // 2. VIEW: The Visuals (Passive MonoBehaviours)
+    public class HotbarView : MonoBehaviour {
+        [SerializeField] private List<UnityEngine.UI.Image> slots;
+
+        public void UpdateIcons(List<Sprite> icons) {
+            for (int i = 0; i < slots.Count; i++) {
+                if (i < icons.Count) {
+                    slots[i].sprite = icons[i];
+                    slots[i].enabled = true;
+                } else {
+                    slots[i].enabled = false;
+                }
+            }
+            Debug.Log("[View] Status: Hotbar Visuals Updated | Data: Success");
+        }
+    }
+
+    // 3. PRESENTER: The Mediator
+    public class HotbarPresenter : Presenter<AbilityModel, HotbarView> {
+        public HotbarPresenter(AbilityModel model, HotbarView view) : base(model, view) { }
+
+        protected override void Bind() {
+            model.abilityIcons.OnChanged += view.UpdateIcons;
+            // Force initial sync
+            view.UpdateIcons(model.abilityIcons.GetInternalList()); 
+        }
+
+        public override void Unbind() {
+            model.abilityIcons.OnChanged -= view.UpdateIcons;
+        }
+
+        public void AddAbility(Sprite icon) {
+            model.abilityIcons.Add(icon);
+        }
+    }
+    
+    // Helper to get raw list (simplification for example)
+    public static class ObservableListExtensions {
+        public static List<T> GetInternalList<T>(this ObservableList<T> obs) {
+            var items = new List<T>();
+            foreach(var item in obs) items.Add(item);
+            return items;
+        }
+    }
+}

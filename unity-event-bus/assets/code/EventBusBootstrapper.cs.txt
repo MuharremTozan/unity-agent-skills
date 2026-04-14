@@ -1,0 +1,60 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+namespace Standard.Events.Bus {
+    /// <summary>
+    /// Bootstraps the event bus system on game start.
+    /// Finds all event types and ensures buses are initialized and cleared properly.
+    /// </summary>
+    public static class EventBusBootstrapper {
+        private static List<Type> _eventTypes;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        public static void Initialize() {
+            _eventTypes = new List<Type>();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            
+            foreach (var assembly in assemblies) {
+                var types = assembly.GetTypes();
+                foreach (var type in types) {
+                    if (typeof(IEvent).IsAssignableFrom(type) && !type.IsInterface) {
+                        _eventTypes.Add(type);
+                    }
+                }
+            }
+            
+            Debug.Log($"[EventBus] Status: Success | Initialized {_eventTypes.Count} event buses.");
+        }
+
+#if UNITY_EDITOR
+        [InitializeOnLoadMethod]
+        private static void EditorInitialize() {
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        }
+
+        private static void OnPlayModeStateChanged(PlayModeStateChange state) {
+            if (state == PlayModeStateChange.ExitingPlayMode) {
+                ClearAllBuses();
+            }
+        }
+#endif
+
+        public static void ClearAllBuses() {
+            if (_eventTypes == null) return;
+
+            foreach (var type in _eventTypes) {
+                var busType = typeof(EventBus<>).MakeGenericType(type);
+                var clearMethod = busType.GetMethod("Clear", BindingFlags.Static | BindingFlags.Public);
+                clearMethod?.Invoke(null, null);
+            }
+            
+            Debug.Log("[EventBus] Status: Success | Cleared all event buses.");
+        }
+    }
+}

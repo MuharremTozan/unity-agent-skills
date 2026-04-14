@@ -1,0 +1,23 @@
+using UnityEngine;
+
+namespace Platformer.Factory {
+    // 1. Define the abstract factory for Equipment (Weapon + Shield)
+    // This allows you to hot-swap entire "Kits" (e.g., HeavyKit, LightKit, MagicKit) in the inspector.
+    [CreateAssetMenu(fileName = "EquipmentFactory", menuName = "Factories/Equipment")]
+    public class EquipmentFactory : ScriptableObject, IFactory<IEquipment> {
+        // Here we reference OTHER factories. This is the abstract part - composing others.
+        [SerializeField] private AbstractFactory<IWeapon> weaponFactory;
+        [SerializeField] private AbstractFactory<IShield> shieldFactory;
+
+        public IEquipment Create() { // Just returning void/null for example structure
+             IWeapon w = weaponFactory.Create();
+             IShield s = shieldFactory.Create();
+             // In a real implementation, you might return a Kit struct or configure a character directly.
+             return null; 
+        }
+        
+        // Or specific methods if consumers need pieces
+        public IWeapon CreateWeapon() => weaponFactory.Create();
+        public IShield CreateShield() => shieldFactory.Create();
+    }
+}

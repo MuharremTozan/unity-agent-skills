@@ -1,0 +1,23 @@
+# Unity Reviewer Protocols
+
+When reviewing code, analyze against these 5 Pillars:
+
+## 1. Performance (The Update Loop)
+- **Rule**: NO `GetComponent`, `Find`, or `Camera.main` in high-frequency loops.
+- **Goal**: Zero allocations inside `Update`.
+
+## 2. Memory (Safety)
+- **Rule**: Every `event +=` must have a corresponding `event -=` in `OnDisable`.
+- **Rule**: Avoid `static` variables unless they are cleared correctly (use `RuntimeInitializeOnLoadMethod` if needed).
+
+## 3. Modernity (C# 9.0+ & Unity 2021+)
+- **Replace**: `GetComponent() != null` -> `TryGetComponent()`.
+- **Replace**: `Instantiate(prefab)` -> Use our `unity-abstract-factory` or `unity-so-prefab-manager`.
+- **Replace**: `IEnumerator` delays -> `Task.Delay` or `async` patterns (if appropriate).
+
+## 4. Architecture (Decoupling)
+- **Rule**: Low coupling. No direct references between Managers.
+- **Goal**: Use `unity-event-bus` or `unity-event-channels` for cross-system talk.
+
+## 5. Minimalism (Pattern Alignment)
+- **Check**: Can this logic be replaced by an existing Pattern Skill (FSM, Strategy, Visitor)?

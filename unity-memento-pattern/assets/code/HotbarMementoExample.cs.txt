@@ -1,0 +1,33 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Standard.Patterns.Memento.Examples {
+    /// <summary>
+    /// Represents an Item/Ability that can be in a Hotbar.
+    /// </summary>
+    public class HotbarItem : ScriptableObject {
+        public string Name;
+        public Sprite Icon;
+    }
+
+    /// <summary>
+    /// The Originator: A Hotbar system that can snapshot its slots.
+    /// </summary>
+    public class HotbarSystem : MonoBehaviour, IOriginator<List<HotbarItem>> {
+        [SerializeField] private List<HotbarItem> currentSlots = new();
+
+        public IMemento<List<HotbarItem>> Save() {
+            // Important: Create a new list to ensure the snapshot is immutable
+            return new Memento<List<HotbarItem>>(new List<HotbarItem>(currentSlots));
+        }
+
+        public void Restore(IMemento<List<HotbarItem>> memento) {
+            currentSlots = new List<HotbarItem>(memento.State);
+            UpdateUI();
+        }
+
+        private void UpdateUI() {
+            Debug.Log("[Hotbar] Status: UI Updated with restored state.");
+        }
+    }
+}

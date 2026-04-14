@@ -1,0 +1,61 @@
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Standard.UI.Procedural {
+    /// <summary>
+    /// A universal manipulator to make any VisualElement draggable.
+    /// Uses Pointer events for cross-platform compatibility.
+    /// </summary>
+    public class DragManipulator : PointerManipulator {
+        private bool isDragging;
+        private Vector2 startPointerPos;
+        private Vector2 startElementPos;
+
+        public DragManipulator() {
+            activators.Add(new ManipulatorActivationFilter { button = MouseButton.LeftMouse });
+        }
+
+        protected override void RegisterCallbacksOnTarget() {
+            target.RegisterCallback<PointerDownEvent>(OnPointerDown);
+            target.RegisterCallback<PointerMoveEvent>(OnPointerMove);
+            target.RegisterCallback<PointerUpEvent>(OnPointerUp);
+        }
+
+        protected override void UnregisterCallbacksFromTarget() {
+            target.UnregisterCallback<PointerDownEvent>(OnPointerDown);
+            target.UnregisterCallback<PointerMoveEvent>(OnPointerMove);
+            target.UnregisterCallback<PointerUpEvent>(OnPointerUp);
+        }
+
+        private void OnPointerDown(PointerDownEvent evt) {
+            if (isDragging || !CanStartManipulation(evt)) return;
+
+            isDragging = true;
+            startPointerPos = evt.position;
+            startElementPos = new Vector2(target.resolvedStyle.left, target.resolvedStyle.top);
+            
+            target.CapturePointer(evt.pointerId);
+            evt.StopPropagation();
+            Debug.Log($"[UI] Status: Drag Started | Item: {target.name}");
+        }
+
+        private void OnPointerMove(PointerMoveEvent evt) {
+            if (!isDragging || !target.HasPointerCapture(evt.pointerId)) return;
+
+            Vector2 delta = (Vector2)evt.position - startPointerPos;
+            target.style.left = startElementPos.x + delta.x;
+            target.style.top = startElementPos.y + delta.y;
+            
+            evt.StopPropagation();
+        }
+
+        private void OnPointerUp(PointerUpEvent evt) {
+            if (!isDragging || !target.HasPointerCapture(evt.pointerId)) return;
+
+            isDragging = false;
+            target.ReleasePointer(evt.pointerId);
+            evt.StopPropagation();
+            Debug.Log($"[UI] Status: Drag Finished | Item: {target.name}");
+        }
+    }
+}

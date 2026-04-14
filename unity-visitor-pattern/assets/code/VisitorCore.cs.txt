@@ -1,0 +1,26 @@
+namespace Standard.Patterns.Visitor {
+    /// <summary>
+    /// Contract for objects that can be visited by an external logic provider.
+    /// </summary>
+    public interface IVisitable {
+        void Accept(IVisitor visitor);
+    }
+
+    /// <summary>
+    /// Contract for logic providers that perform operations on specific component types.
+    /// Add specific 'Visit' signatures for each distinct component type in your system.
+    /// </summary>
+    public interface IVisitor {
+        // Example signatures - Add your specific component types here
+        void Visit(VisitableComponent component);
+    }
+
+    /// <summary>
+    /// Base implementation of a visitable component.
+    /// </summary>
+    public abstract class VisitableComponent : UnityEngine.MonoBehaviour, IVisitable {
+        public virtual void Accept(IVisitor visitor) {
+            visitor.Visit(this);
+        }
+    }
+}

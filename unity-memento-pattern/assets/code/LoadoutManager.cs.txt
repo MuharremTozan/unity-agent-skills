@@ -1,0 +1,34 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Standard.Patterns.Memento {
+    /// <summary>
+    /// Acts as the Caretaker. Stores and manages snapshots for a specific Originator.
+    /// Ideal for Loadout systems and Checkpoints.
+    /// </summary>
+    public class LoadoutManager<T> {
+        private readonly List<IMemento<T>> _mementos = new();
+        private readonly IOriginator<T> _originator;
+
+        public LoadoutManager(IOriginator<T> originator) {
+            _originator = originator;
+        }
+
+        public void Save(int index) {
+            var memento = _originator.Save();
+            if (index >= _mementos.Count) {
+                _mementos.Add(memento);
+            } else {
+                _mementos[index] = memento;
+            }
+            Debug.Log($"[Memento] Status: Saved Loadout {index}");
+        }
+
+        public void Load(int index) {
+            if (index >= 0 && index < _mementos.Count) {
+                _originator.Restore(_mementos[index]);
+                Debug.Log($"[Memento] Status: Loaded Loadout {index}");
+            }
+        }
+    }
+}

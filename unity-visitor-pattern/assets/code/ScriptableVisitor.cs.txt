@@ -1,0 +1,25 @@
+using UnityEngine;
+
+namespace Standard.Patterns.Visitor {
+    /// <summary>
+    /// Base ScriptableObject visitor. 
+    /// Allows creating data-driven visitors (PowerUps, StatModifiers) that can be swapped in the Inspector.
+    /// </summary>
+    public abstract class ScriptableVisitor : ScriptableObject, IVisitor {
+        public abstract void Visit(VisitableComponent component);
+    }
+
+    /// <summary>
+    /// Utility for triggering a visit via a Unity Trigger/Collision.
+    /// </summary>
+    public class VisitorTrigger : MonoBehaviour {
+        [SerializeField] private ScriptableVisitor visitor;
+
+        private void OnTriggerEnter(Collider other) {
+            if (other.TryGetComponent(out IVisitable visitable)) {
+                visitable.Accept(visitor);
+                Destroy(gameObject); // Optional: Remove powerup after use
+            }
+        }
+    }
+}

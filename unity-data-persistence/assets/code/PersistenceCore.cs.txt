@@ -1,0 +1,79 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
+
+namespace Standard.Systems.Persistence {
+
+    // ─── Serialization Layer ───────────────────────────────────────────────────
+
+    public interface ISerializer {
+        string Serialize<T>(T obj);
+        T Deserialize<T>(string data);
+    }
+
+    public class JsonSerializer : ISerializer {
+        public string Serialize<T>(T obj) => JsonUtility.ToJson(obj, true);
+        public T Deserialize<T>(string data) => JsonUtility.FromJson<T>(data);
+    }
+
+    // ─── Data Service Layer ────────────────────────────────────────────────────
+
+    public interface IDataService {
+        void Save(GameData data, bool overwrite = true);
+        GameData Load(string name);
+        void Delete(string name);
+        void DeleteAll();
+        IEnumerable<string> ListSaves();
+    }
+
+    // ─── Data Binding Contracts ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Any object whose data can be persisted. Must carry a stable GUID identity.
+    /// </summary>
+    public interface ISaveable {
+        SerializableGuid Id { get; set; }
+    }
+
+    /// <summary>
+    /// Applied to MonoBehaviours that can receive ("bind") a data snapshot at load time.
+    /// Implement this on Player, Inventory, any in-world entity that saves state.
+    /// </summary>
+    public interface IBind<TData> where TData : ISaveable {
+        SerializableGuid Id { get; set; }
+        void Bind(TData data);
+    }
+
+    // ─── Serializable GUID ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// A Unity-serializable wrapper around System.Guid.
+    /// Stored as four ints for fast integer comparison (faster than string compare).
+    /// Assign via the Inspector or generate at runtime with SerializableGuid.NewGuid().
+    /// </summary>
+    [Serializable]
+    public struct SerializableGuid : IEquatable<SerializableGuid> {
+        [SerializeField] int part1, part2, part3, part4;
+
+        public static SerializableGuid NewGuid() {
+            byte[] bytes = Guid.NewGuid().ToByteArray();
+            return new SerializableGuid {
+                part1 = BitConverter.ToInt32(bytes, 0),
+                part2 = BitConverter.ToInt32(bytes, 4),
+                part3 = BitConverter.ToInt32(bytes, 8),
+                part4 = BitConverter.ToInt32(bytes, 12)
+            };
+        }
+
+        public bool Equals(SerializableGuid other) =>
+            part1 == other.part1 && part2 == other.part2 &&
+            part3 == other.part3 && part4 == other.part4;
+
+        public override bool Equals(object obj) => obj is SerializableGuid g && Equals(g);
+        public override int GetHashCode() => HashCode.Combine(part1, part2, part3, part4);
+        public static bool operator ==(SerializableGuid a, SerializableGuid b) => a.Equals(b);
+        public static bool operator !=(SerializableGuid a, SerializableGuid b) => !a.Equals(b);
+        public override string ToString() => $"{part1:X8}-{part2:X8}-{part3:X8}-{part4:X8}";
+    }
+}

@@ -1,0 +1,27 @@
+#if UNITY_EDITOR
+using System.Reflection;
+using UnityEditor;
+using UnityEngine.Events;
+
+namespace Standard.Patterns.Observer.Editor {
+    public static class ObservableEditorTools {
+        /// <summary>
+        /// Clears all persistent listeners (the ones visible in the Inspector) using reflection.
+        /// Useful for custom tools that need to reset events programmatically.
+        /// </summary>
+        public static void ClearPersistentListeners(UnityEventBase unityEvent) {
+            if (unityEvent == null) return;
+
+            // Access the private M_PersistentCalls field in UnityEventBase
+            var field = typeof(UnityEventBase).GetField("m_PersistentCalls", BindingFlags.Instance | BindingFlags.NonPublic);
+            var persistentCalls = field?.GetValue(unityEvent);
+            
+            if (persistentCalls == null) return;
+
+            // Call the Clear method on the call group
+            var clearMethod = persistentCalls.GetType().GetMethod("Clear", BindingFlags.Instance | BindingFlags.Public);
+            clearMethod?.Invoke(persistentCalls, null);
+        }
+    }
+}
+#endif

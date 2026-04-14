@@ -1,0 +1,32 @@
+using UnityEngine;
+
+namespace Standard.Patterns.Singleton {
+    /// <summary>
+    /// RegulatorSingleton: Inverse of the standard Singleton. 
+    /// It destroys OLD instances to ensure the NEWEST one is always the master.
+    /// Helpful for system hot-swapping.
+    /// </summary>
+    public abstract class RegulatorSingleton<T> : MonoBehaviour where T : MonoBehaviour {
+        public static T Instance { get; private set; }
+        protected float initializationTime;
+
+        protected virtual void Awake() {
+            initializationTime = Time.time;
+            DontDestroyOnLoad(gameObject);
+            
+            T[] oldInstances = Object.FindObjectsByType<T>(FindObjectsSortMode.None);
+            foreach (T old in oldInstances) {
+                if (old == this) continue;
+                
+                var regulator = old.GetComponent<RegulatorSingleton<T>>();
+                if (regulator != null && regulator.initializationTime < initializationTime) {
+                    Debug.Log($"[Regulator] Status: Destroying old instance of {typeof(T).Name} | Data: {old.name}");
+                    Destroy(old.gameObject);
+                }
+            }
+
+            Instance = this as T;
+            Debug.Log($"[Regulator] Status: New {typeof(T).Name} promoted to active | Data: {gameObject.name}");
+        }
+    }
+}

@@ -1,0 +1,21 @@
+# Interaction System Implementation Checklist
+
+Use this checklist during a `/smart-review` to verify Interaction logic.
+
+## 1. Interactable Setup
+- [ ] Does the target GameObject implement `IInteractable`?
+- [ ] Is there a `Collider` (standard or trigger) on the object for raycast detection?
+- [ ] Is the interaction logic decoupled from the visual representation?
+
+## 2. Detection (Interactor)
+- [ ] Is the `InteractionController` active on the Player/Camera?
+- [ ] Is the interaction distance set appropriately for the genre?
+- [ ] Are we using `LayerMask` to ignore unnecessary objects?
+
+## 3. UI/UX
+- [ ] Is there a feedback loop (e.g., prompt appearing when looking at an object)?
+- [ ] Does the `OnInteract` method provide immediate haptic or visual feedback?
+
+## 4. Input Mapping
+- [ ] Are we using the standard project inputs (E/F or New Input System)?
+- [ ] Are interactions possible while the game is paused or in UI mode? (They shouldn't be).

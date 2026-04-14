@@ -1,0 +1,29 @@
+using UnityEngine;
+using Standard.Patterns.DI;
+
+namespace Standard.Examples {
+    // 1. Logic Abstraction
+    public interface IAbilitySystem {
+        void Execute();
+    }
+
+    // 2. Concrete Implementation
+    public class SimpleAbilitySystem : MonoBehaviour, IAbilitySystem {
+        [Provide] public IAbilitySystem ProvideAbilitySystem() => this;
+
+        public void Execute() {
+            Debug.Log("[Ability] Status: Executed Simple Ability | Data: {Default}");
+        }
+    }
+
+    // 3. Dependent Client
+    public class PlayerHero : MonoBehaviour {
+        [Inject] private IAbilitySystem abilitySystem;
+
+        private void Start() {
+            if (abilitySystem != null) {
+                abilitySystem.Execute();
+            }
+        }
+    }
+}

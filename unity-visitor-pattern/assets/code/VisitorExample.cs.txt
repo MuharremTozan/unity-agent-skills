@@ -1,0 +1,32 @@
+using UnityEngine;
+
+namespace Standard.Patterns.Visitor {
+    /// <summary>
+    /// Example of a concrete visitable component (e.g., Health, Mana, Stats).
+    /// </summary>
+    public class StatComponent : VisitableComponent {
+        [SerializeField] private float currentValue;
+        public float Value { get => currentValue; set => currentValue = value; }
+
+        public override void Accept(IVisitor visitor) {
+            // This is the Double Dispatch call
+            visitor.Visit(this);
+        }
+    }
+
+    /// <summary>
+    /// Example of a concrete visitor implemented as a ScriptableObject.
+    /// Create assets of this type to define "PowerUps".
+    /// </summary>
+    [CreateAssetMenu(fileName = "NewStatModifier", menuName = "Patterns/Visitor/StatModifier")]
+    public class StatModifierPowerUp : ScriptableVisitor {
+        public float amount;
+
+        public override void Visit(VisitableComponent component) {
+            if (component is StatComponent stats) {
+                stats.Value += amount;
+                Debug.Log($"[Visitor] Success: Applied {amount} to {stats.name}");
+            }
+        }
+    }
+}

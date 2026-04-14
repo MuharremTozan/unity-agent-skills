@@ -1,0 +1,17 @@
+namespace Standard.Interaction {
+    /// <summary>
+    /// Core interface for any object that can be interacted with.
+    /// Implement this on stations, items, NPCs, or any clickable object.
+    /// </summary>
+    public interface IInteractable {
+        void Interact(IInteractor interactor);
+        void InteractAlternate(IInteractor interactor);
+    }
+
+    /// <summary>
+    /// Interface for entities that can perform interactions (Player, AI).
+    /// </summary>
+    public interface IInteractor {
+        // Marker interface - extend as needed
+    }
+}

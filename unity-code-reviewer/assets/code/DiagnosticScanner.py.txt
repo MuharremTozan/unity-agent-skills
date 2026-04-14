@@ -1,0 +1,70 @@
+import re
+import os
+import sys
+
+# Core "Anti-Patterns" to detect in Unity C#
+DIAGNOSTICS = [
+    {
+        "id": "U001",
+        "name": "Heavy Update Call",
+        "regex": r"(Update|FixedUpdate|LateUpdate).*?({.*?(GetComponent|Find|SendMessage|FindObjectOfType|Camera\.main).*?})",
+        "severity": "CRITICAL",
+        "fix": "Cache references in Awake/Start."
+    },
+    {
+        "id": "U002",
+        "name": "Memory Leak (Events)",
+        "regex": r"(\+=).*?(?!.*(-=))", # Simplistic check for missing -=
+        "severity": "HIGH",
+        "fix": "All event subscriptions must be cleared in OnDisable/OnDestroy."
+    },
+    {
+        "id": "U003",
+        "name": "Serialization Standard",
+        "regex": r"\[SerializeField\]\s+public",
+        "severity": "LOW",
+        "fix": "Favor '[SerializeField] private' for inspector exposure to preserve encapsulation."
+    },
+    {
+        "id": "U004",
+        "name": "Magic Values",
+        "regex": r"[^a-zA-Z0-9_](?<!LayerMask\.GetMask\()(?<!Color\()(?<!Vector[23]\()(?<!Time\.)(?<!Mathf\.)[0-9]{2,}(?!\.[0-9]+f|\s*L|\s*U)",
+        "severity": "MEDIUM",
+        "fix": "Replace magic numbers with named constants or ScriptableObject config fields."
+    },
+    {
+        "id": "UI001",
+        "name": "BEM Naming Violation",
+        "regex": r'\.Q(<.*?>)?\("(?![a-z0-9]+(__[a-z0-9]+)?(--[a-z0-9]+)?")[^"]+"\)',
+        "severity": "MEDIUM",
+        "fix": "UI Toolkit elements must follow BEM naming (block__element--modifier)."
+    },
+    {
+        "id": "ARCH001",
+        "name": "Monolithic Hint",
+        "regex": r"(public\s+void\s+\w+\s*\(.*?\)\s*{.*?}){10,}", # 10+ public methods in one class
+        "severity": "LOW",
+        "fix": "Consider splitting into smaller components (SRP)."
+    }
+]
+
+def scan_file(file_path):
+    if not os.path.exists(file_path):
+        return []
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            results = []
+            for diag in DIAGNOSTICS:
+                if re.search(diag["regex"], content, re.DOTALL):
+                    results.append(diag)
+            return results
+    except Exception as e:
+        return [{"id": "ERR", "name": "Scan Error", "severity": "ERROR", "fix": str(e)}]
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        file_to_scan = sys.argv[1]
+        findings = scan_file(file_to_scan)
+        for f in findings:
+            print(f"[{f['severity']}] {f['id']} - {f['name']}: {f['fix']}")

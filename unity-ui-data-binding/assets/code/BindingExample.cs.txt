@@ -1,0 +1,60 @@
+using UnityEngine;
+using UnityEngine.UIElements;
+using Standard.UI.Binding;
+
+namespace Standard.Examples {
+    // 1. MODEL: Simple data holder
+    public class PlayerStats {
+        public int Coins;
+        public float HealthPercent;
+    }
+
+    // 2. VIEW MODEL: Exposes BINDABLE properties
+    public class PlayerViewModel {
+        private PlayerStats model;
+
+        // One-way string binding (for a Label)
+        public BindableProperty<string> CoinDisplay { get; }
+        
+        // One-way float binding (for a Progress Bar)
+        public BindableProperty<float> HealthDisplay { get; }
+
+        public PlayerViewModel(PlayerStats stats) {
+            model = stats;
+            CoinDisplay = BindableProperty<string>.Bind(() => $"COINS: {model.Coins}");
+            HealthDisplay = BindableProperty<float>.Bind(() => model.HealthPercent);
+        }
+    }
+
+    // 3. UI CONTROLLER: Binds the ViewModel to the Document
+    public class PlayerUI : MonoBehaviour {
+        [SerializeField] private UIDocument uiDoc;
+        private PlayerStats stats = new PlayerStats { Coins = 100, HealthPercent = 0.75f };
+        private PlayerViewModel viewModel;
+
+        private void OnEnable() {
+            viewModel = new PlayerViewModel(stats);
+            var root = uiDoc.rootVisualElement;
+
+            // Set the DATA SOURCE for the root (or specific sub-sections)
+            root.dataSource = viewModel;
+
+            // Bind elements to the paths inside the ViewModel
+            var coinLabel = root.Q<Label>("coin-label");
+            var healthBar = root.Q<ProgressBar>("health-bar");
+
+            // Path points to the Property Name + ".Value"
+            coinLabel.SetBinding("text", "CoinDisplay.Value");
+            healthBar.SetBinding("value", "HealthDisplay.Value");
+            
+            Debug.Log("[Binding] Status: Data Source set to View Model | Data: Success");
+        }
+
+        private void Update() {
+            // Simulated update: The UI updates automatically via binding!
+            if (Input.GetKeyDown(KeyCode.Space)) {
+                stats.Coins += 10;
+            }
+        }
+    }
+}

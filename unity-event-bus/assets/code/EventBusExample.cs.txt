@@ -1,0 +1,41 @@
+using UnityEngine;
+
+namespace Standard.Events.Bus.Examples {
+    /// <summary>
+    /// Example of a data-driven event.
+    /// Structs are preferred for zero garbage collection.
+    /// </summary>
+    public struct PlayerLevelUpEvent : IEvent {
+        public int NewLevel;
+    }
+
+    /// <summary>
+    /// Example of a simple trigger event without data.
+    /// </summary>
+    public struct GameSavedEvent : IEvent { }
+
+    public class EventBusUsageExample : MonoBehaviour {
+        // Step 1: Define the binding
+        private EventBinding<PlayerLevelUpEvent> _levelUpBinding;
+
+        private void OnEnable() {
+            // Step 2: Initialize and Register
+            _levelUpBinding = new EventBinding<PlayerLevelUpEvent>(OnPlayerLevelUp);
+            EventBus<PlayerLevelUpEvent>.Register(_levelUpBinding);
+        }
+
+        private void OnDisable() {
+            // Step 3: Deregister
+            EventBus<PlayerLevelUpEvent>.Deregister(_levelUpBinding);
+        }
+
+        private void OnPlayerLevelUp(PlayerLevelUpEvent @event) {
+            Debug.Log($"[Example] Status: Event Received | Player leveled up to {@event.NewLevel}");
+        }
+
+        // Raise the event from anywhere
+        public void LevelUpPlayer(int level) {
+            EventBus<PlayerLevelUpEvent>.Raise(new PlayerLevelUpEvent { NewLevel = level });
+        }
+    }
+}

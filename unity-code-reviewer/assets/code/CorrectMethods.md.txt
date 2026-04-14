@@ -1,0 +1,16 @@
+# Correct Methods Cheat Sheet
+
+| Situation | Old / Suboptimal Method | Correct / Optimized Method |
+|-----------|-------------------------|----------------------------|
+| Fetching Components | `GetComponent<Type>()` | `TryGetComponent(out Type t)` |
+| Distance Checks | `Vector3.Distance(a, b)` | `(a - b).sqrMagnitude` (Avoids Sqrt) |
+| Event Messaging | `GameObject.SendMessage` | `unity-event-bus` (Static-typed) |
+| Tag Checking | `obj.tag == "Enemy"` | `obj.CompareTag("Enemy")` (Zero alloc) |
+| Singleton Access | `Manager.Instance` | Dependency Injection or `unity-event-channels` |
+| Timing | `Invoke("Method", 2f)` | `Task.Delay` or `unity-fsm` Timers |
+| Object Spawning | `new GameObject()` | `unity-builder-pattern` |
+
+## Pattern Matching Suggestion Logic
+- **Many `if/else` states?** -> Suggest `unity-fsm`.
+- **Many `if (type == X)` checks?** -> Suggest `unity-strategy-pattern`.
+- **Complex Stat logic?** -> Suggest `unity-decorator-pattern` or `unity-visitor-pattern`.

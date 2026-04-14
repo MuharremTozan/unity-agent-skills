@@ -1,0 +1,27 @@
+using System;
+
+namespace Platformer {
+    public class ActionState : IState {
+        readonly Action onEnter;
+        readonly Action onUpdate;
+        readonly Action onFixedUpdate;
+        readonly Action onExit;
+
+        public ActionState(
+            Action onEnter = null,
+            Action onUpdate = null,
+            Action onFixedUpdate = null,
+            Action onExit = null
+        ) {
+            this.onEnter = onEnter;
+            this.onUpdate = onUpdate;
+            this.onFixedUpdate = onFixedUpdate;
+            this.onExit = onExit;
+        }
+
+        public void OnEnter() => onEnter?.Invoke();
+        public void Update() => onUpdate?.Invoke();
+        public void FixedUpdate() => onFixedUpdate?.Invoke();
+        public void OnExit() => onExit?.Invoke();
+    }
+}

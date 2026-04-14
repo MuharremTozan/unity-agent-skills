@@ -1,0 +1,27 @@
+using UnityEngine;
+using System;
+
+namespace Standard.Patterns.Composition {
+    /// <summary>
+    /// A generic entity that defines Its state through composition (has-a) 
+    /// rather than inheritance (is-a).
+    /// </summary>
+    public class ModularEntity : MonoBehaviour {
+        [Header("Components")]
+        [SerializeField] private EntityConfigSO primaryConfig;
+        [SerializeField] private EntityConfigSO secondaryConfig;
+
+        // Tuple return example: Passing back multi-part results without boilerplate structs
+        public (object primary, object secondary) GetAllData() {
+            var data1 = primaryConfig?.CreateRuntimeInstance();
+            var data2 = secondaryConfig?.CreateRuntimeInstance();
+            
+            Debug.Log($"[Composition] Status: Data harvested | Data: {primaryConfig?.EntityName}, {secondaryConfig?.EntityName}");
+            return (data1, data2);
+        }
+
+        public void Initialize(EntityConfigSO config) {
+            this.primaryConfig = config;
+        }
+    }
+}

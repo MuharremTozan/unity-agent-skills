@@ -1,0 +1,46 @@
+using System.Threading.Tasks;
+using UnityEngine;
+
+namespace Standard.Patterns {
+    /// <summary>
+    /// Command interface with async support for sequential execution.
+    /// </summary>
+    public interface ICommand {
+        Task Execute();
+    }
+
+    /// <summary>
+    /// ScriptableObject-based command for data-driven actions.
+    /// Use this for simple, inspector-configurable commands.
+    /// </summary>
+    public abstract class CommandSO : ScriptableObject {
+        public abstract void Execute();
+    }
+
+    /// <summary>
+    /// Command invoker for queuing and executing commands sequentially.
+    /// </summary>
+    public class CommandQueue : MonoBehaviour {
+        private System.Collections.Generic.Queue<ICommand> _commands = new();
+        private bool _isExecuting;
+
+        public void Enqueue(ICommand command) {
+            _commands.Enqueue(command);
+            if (!_isExecuting) {
+                ExecuteNext();
+            }
+        }
+
+        private async void ExecuteNext() {
+            if (_commands.Count == 0) {
+                _isExecuting = false;
+                return;
+            }
+
+            _isExecuting = true;
+            ICommand command = _commands.Dequeue();
+            await command.Execute();
+            ExecuteNext();
+        }
+    }
+}

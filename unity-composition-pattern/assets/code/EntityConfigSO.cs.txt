@@ -1,0 +1,19 @@
+using UnityEngine;
+
+namespace Standard.Patterns.Composition {
+    /// <summary>
+    /// Base class for static data configuration. 
+    /// Instead of creating "RedCar" subclasses, create "CarConfig" assets.
+    /// </summary>
+    public abstract class EntityConfigSO : ScriptableObject {
+        [Header("Identity")]
+        [SerializeField] private string entityName;
+        [SerializeField] private Sprite icon;
+
+        public string EntityName => entityName;
+        public Sprite Icon => icon;
+
+        // Factory method to generate runtime data from static config
+        public abstract object CreateRuntimeInstance();
+    }
+}

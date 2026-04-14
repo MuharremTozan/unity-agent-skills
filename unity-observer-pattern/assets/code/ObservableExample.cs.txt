@@ -1,0 +1,38 @@
+using UnityEngine;
+using UnityEngine.UI;
+using Standard.Patterns.Observer;
+
+namespace Standard.Examples {
+    public class PlayerHealthExample : MonoBehaviour {
+        [Header("Observable Data")]
+        public Observable<int> health = new Observable<int>(100);
+
+        [Header("UI Reference")]
+        [SerializeField] private Text healthText;
+
+        private void Start() {
+            // Option A: Bind via Code
+            health.AddListener(OnHealthChanged);
+            
+            // Invoke initial value to sync UI
+            health.Invoke();
+        }
+
+        private void Update() {
+            if (Input.GetKeyDown(KeyCode.Space)) {
+                health.Value -= 10;
+            }
+        }
+
+        private void OnHealthChanged(int currentHealth) {
+            if (healthText != null) {
+                healthText.text = $"Health: {currentHealth}";
+            }
+        }
+
+        private void OnDisable() {
+            // Always cleanup to prevent memory leaks!
+            health.RemoveListener(OnHealthChanged);
+        }
+    }
+}

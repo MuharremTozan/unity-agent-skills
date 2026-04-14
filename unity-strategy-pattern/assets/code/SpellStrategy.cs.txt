@@ -1,0 +1,7 @@
+using UnityEngine;
+
+namespace Platformer.Strategy {
+    public abstract class SpellStrategy : ScriptableObject {
+        public abstract void CastSpell(Transform origin);
+    }
+}

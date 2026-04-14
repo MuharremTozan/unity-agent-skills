@@ -1,0 +1,24 @@
+using UnityEngine;
+
+namespace Standard.Patterns.MVC {
+    /// <summary>
+    /// Base class for the "Presenter" in MVP. 
+    /// Bridges the Model (Data) and View (UI/MonoBehaviours).
+    /// </summary>
+    public abstract class Presenter<TModel, TView> {
+        protected TModel model;
+        protected TView view;
+
+        protected Presenter(TModel model, TView view) {
+            this.model = model;
+            this.view = view;
+            Bind();
+        }
+
+        // Hook up model events to view methods
+        protected abstract void Bind();
+        
+        // Clean up listeners
+        public abstract void Unbind();
+    }
+}

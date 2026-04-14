@@ -1,0 +1,51 @@
+using UnityEngine;
+
+namespace Standard.Interaction {
+    /// <summary>
+    /// Base class for interactable objects with Raycast detection.
+    /// Handles selection highlighting and input routing.
+    /// </summary>
+    public class InteractionController : MonoBehaviour, IInteractor {
+        [Header("Detection")]
+        [SerializeField] private float interactDistance = 2f;
+        [SerializeField] private LayerMask interactableLayer;
+
+        private IInteractable _selectedTarget;
+
+        private void Update() {
+            DetectTarget();
+            HandleInput();
+        }
+
+        private void DetectTarget() {
+            Vector3 direction = transform.forward;
+            
+            if (Physics.Raycast(transform.position, direction, out RaycastHit hit, interactDistance, interactableLayer)) {
+                if (hit.transform.TryGetComponent(out IInteractable interactable)) {
+                    SetSelectedTarget(interactable);
+                    return;
+                }
+            }
+            
+            SetSelectedTarget(null);
+        }
+
+        private void HandleInput() {
+            if (_selectedTarget == null) return;
+
+            if (Input.GetKeyDown(KeyCode.E)) {
+                _selectedTarget.Interact(this);
+            }
+            
+            if (Input.GetKeyDown(KeyCode.F)) {
+                _selectedTarget.InteractAlternate(this);
+            }
+        }
+
+        private void SetSelectedTarget(IInteractable target) {
+            if (_selectedTarget == target) return;
+            _selectedTarget = target;
+            // Fire selection event here if using event channels
+        }
+    }
+}

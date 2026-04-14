@@ -1,0 +1,32 @@
+using System;
+using Unity.Properties;
+using UnityEngine;
+
+namespace Standard.UI.Binding {
+    /// <summary>
+    /// A wrapper for properties that can be bound to UI Toolkit elements.
+    /// Uses Unity.Properties to enable high-performance runtime data binding.
+    /// </summary>
+    public class BindableProperty<T> {
+        private readonly Func<T> getter;
+        private readonly Action<T> setter;
+
+        /// <summary>
+        /// Property value accessed by the binding system.
+        /// [CreateProperty] makes this visible to Unity's UI Toolkit Data Binding.
+        /// </summary>
+        [CreateProperty]
+        public T Value {
+            get => getter();
+            set => setter?.Invoke(value);
+        }
+
+        public BindableProperty(Func<T> getter, Action<T> setter = null) {
+            this.getter = getter;
+            this.setter = setter;
+        }
+
+        // Shorthand for simple one-way bindings
+        public static BindableProperty<T> Bind(Func<T> getter) => new BindableProperty<T>(getter);
+    }
+}

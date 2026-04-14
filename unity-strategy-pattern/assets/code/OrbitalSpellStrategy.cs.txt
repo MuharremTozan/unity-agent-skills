@@ -1,0 +1,44 @@
+using UnityEngine;
+
+namespace Platformer.Strategy {
+    /// <summary>
+    /// A strategy that calculates orbital positions and spawns spinning projectiles.
+    /// Demonstrates complex logic encapsulated within a strategy.
+    /// </summary>
+    [CreateAssetMenu(fileName = "OrbitalSpell", menuName = "Spells/Orbital")]
+    public class OrbitalSpellStrategy : SpellStrategy {
+        [SerializeField] private GameObject orbPrefab;
+        [SerializeField] private int orbCount = 3;
+        [SerializeField] private float radius = 2f;
+        [SerializeField] private float rotationSpeed = 180f; // degrees per second
+        [SerializeField] private float duration = 10f;
+
+        public override void CastSpell(Transform origin) {
+            // Create a parent object to handle rotation
+            GameObject parent = new GameObject("OrbParent");
+            parent.transform.position = origin.position;
+            
+            // Calculate spawn positions around the circle
+            for (int i = 0; i < orbCount; i++) {
+                float angle = i * Mathf.PI * 2 / orbCount;
+                Vector3 pos = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * radius;
+                
+                var orb = Instantiate(orbPrefab, parent.transform);
+                orb.transform.localPosition = pos;
+            }
+
+            // In a real implementation, you'd add a rotator component here or use DOTween
+            // For this example, we'll just auto-destroy
+            Destroy(parent, duration);
+            
+            // Add rotation logic (could be a component or a coroutine on a manager)
+            parent.AddComponent<SimpleRotator>().speed = rotationSpeed;
+        }
+
+        // Helper class just for the example logic
+        private class SimpleRotator : MonoBehaviour {
+            public float speed;
+            void Update() => transform.Rotate(Vector3.up, speed * Time.deltaTime);
+        }
+    }
+}

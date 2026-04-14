@@ -1,0 +1,34 @@
+using UnityEngine;
+using Standard.Patterns.Composition;
+
+namespace Standard.Examples {
+    // 1. Concrete Config
+    [CreateAssetMenu(fileName = "NewResourceConfig", menuName = "Composition/Resource Config")]
+    public class ResourceConfigSO : EntityConfigSO {
+        public int amount;
+        public Color debugColor;
+
+        public override object CreateRuntimeInstance() => new { amount, debugColor };
+    }
+
+    // 2. Interaction Example
+    public class Harvester : MonoBehaviour {
+        private void Update() {
+            if (Input.GetKeyDown(KeyCode.F)) {
+                HarvestNearest();
+            }
+        }
+
+        private void HarvestNearest() {
+            // Logic to find a ModularEntity...
+            ModularEntity target = FindFirstObjectByType<ModularEntity>();
+            
+            if (target != null) {
+                // Using Tuples to destructure results immediately (Clean Code)
+                var (main, extra) = target.GetAllData();
+                
+                if (main != null) Debug.Log($"[Harvest] Success: Collected resources.");
+            }
+        }
+    }
+}

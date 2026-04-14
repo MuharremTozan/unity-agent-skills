@@ -1,0 +1,21 @@
+# Event Bus Implementation Checklist
+
+Use this checklist during a `/smart-review` to ensure the Event Bus is implemented correctly.
+
+## 1. Event Definition
+- [ ] Is the event a `struct`? (Mandatory for zero-allocation).
+- [ ] Does it implement `IEvent`?
+- [ ] Is the name descriptive (e.g., `PlayerDiedEvent` instead of `Death`)?
+
+## 2. Subscription Lifecycle
+- [ ] Is the `EventBinding<T>` cached as a field?
+- [ ] Is it registered in `OnEnable` using `EventBus<T>.Register(binding)`?
+- [ ] **CRITICAL**: Is it unregistered in `OnDisable` using `EventBus<T>.Unregister(binding)`?
+
+## 3. Propagation
+- [ ] Is `EventBus<T>.Raise(newEvent)` used for dispatching?
+- [ ] Are listeners performing heavy logic? (Favor queuing or async if the logic is complex).
+
+## 4. Architecture
+- [ ] Is the Event Bus replacing a direct reference between two Managers? (If so, good job).
+- [ ] Are we avoiding "Event Chains" (Event A triggers Event B triggers Event C)?

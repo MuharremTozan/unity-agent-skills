@@ -1,0 +1,54 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+
+namespace Standard.Patterns.DI {
+    [DefaultExecutionOrder(-1000)]
+    public class DependencyInjector : MonoBehaviour {
+        [Header("Settings")]
+        [SerializeField] private bool logInjections = true;
+
+        private void Awake() {
+            InjectAll();
+        }
+
+        public void InjectAll() {
+            var monoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            
+            // 1. Find all Providers
+            var providers = new Dictionary<Type, object>();
+            foreach (var mb in monoBehaviours) {
+                var methods = mb.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                foreach (var method in methods) {
+                    if (method.GetCustomAttribute<ProvideAttribute>() != null) {
+                        providers[method.ReturnType] = method.Invoke(mb, null);
+                    }
+                }
+                
+                var fields = mb.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                foreach (var field in fields) {
+                    if (field.GetCustomAttribute<ProvideAttribute>() != null) {
+                        providers[field.FieldType] = field.GetValue(mb);
+                    }
+                }
+            }
+
+            // 2. Inject into marked fields
+            foreach (var mb in monoBehaviours) {
+                var fields = mb.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                foreach (var field in fields) {
+                    if (field.GetCustomAttribute<InjectAttribute>() != null) {
+                        if (providers.TryGetValue(field.FieldType, out var value)) {
+                            field.SetValue(mb, value);
+                            if (logInjections) Debug.Log($"[DI] Status: Injected {field.FieldType.Name} into {mb.name} | Data: Success");
+                        } else {
+                            Debug.LogError($"[DI] Fail: No provider found for {field.FieldType.Name} on {mb.name}");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

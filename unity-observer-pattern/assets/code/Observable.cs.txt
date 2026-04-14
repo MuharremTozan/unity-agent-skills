@@ -1,0 +1,54 @@
+using System;
+using UnityEngine;
+using UnityEngine.Events;
+
+#if UNITY_EDITOR
+using UnityEditor.Events;
+#endif
+
+namespace Standard.Patterns.Observer {
+    [Serializable]
+    public class Observable<T> {
+        [SerializeField] private T value;
+        [SerializeField] public UnityEvent<T> onValueChanged;
+
+        public T Value {
+            get => value;
+            set {
+                if (Equals(this.value, value)) return;
+                this.value = value;
+                Invoke();
+            }
+        }
+
+        public Observable(T defaultValue = default, UnityAction<T> initializer = null) {
+            value = defaultValue;
+            onValueChanged = new UnityEvent<T>();
+            if (initializer != null) onValueChanged.AddListener(initializer);
+        }
+
+        public void Invoke() {
+            Debug.Log($"[Observer] Status: Invoking {onValueChanged.GetPersistentEventCount()} listeners | Data: {value}");
+            onValueChanged?.Invoke(value);
+        }
+
+        public void AddListener(UnityAction<T> listener) => onValueChanged.AddListener(listener);
+        public void RemoveListener(UnityAction<T> listener) => onValueChanged.RemoveListener(listener);
+        public void RemoveAllListeners() => onValueChanged.RemoveAllListeners();
+
+        public void Dispose() {
+            RemoveAllListeners();
+            value = default;
+        }
+
+        // Implicit operator for shorthand: int x = myObservableInt;
+        public static implicit operator T(Observable<T> observable) => observable.value;
+        
+        public override string ToString() => value.ToString();
+
+        #if UNITY_EDITOR
+        public void AddPersistentListener(UnityAction<T> action) => UnityEventTools.AddPersistentListener(onValueChanged, action);
+        public void RemovePersistentListener(UnityAction<T> action) => UnityEventTools.RemovePersistentListener(onValueChanged, action);
+        #endif
+    }
+}

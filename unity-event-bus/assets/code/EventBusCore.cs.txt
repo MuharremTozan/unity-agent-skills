@@ -1,0 +1,48 @@
+using System;
+using System.Collections.Generic;
+
+namespace Standard.Events.Bus {
+    /// <summary>
+    /// Base interface for all events in the bus system.
+    /// Use structs implementing this for performance.
+    /// </summary>
+    public interface IEvent { }
+
+    /// <summary>
+    /// Interface for event bindings that link a callback to an event type.
+    /// </summary>
+    public interface IEventBinding<T> where T : IEvent {
+        Action<T> OnEvent { get; set; }
+        Action OnEventNoArgs { get; set; }
+    }
+
+    /// <summary>
+    /// Concrete binding for an event type T.
+    /// </summary>
+    public class EventBinding<T> : IEventBinding<T> where T : IEvent {
+        public Action<T> OnEvent { get; set; } = _ => { };
+        public Action OnEventNoArgs { get; set; } = () => { };
+
+        public EventBinding(Action<T> onEvent) => OnEvent = onEvent;
+        public EventBinding(Action onEventNoArgs) => OnEventNoArgs = onEventNoArgs;
+    }
+
+    /// <summary>
+    /// The global hub for a specific event type.
+    /// </summary>
+    public static class EventBus<T> where T : IEvent {
+        private static readonly HashSet<IEventBinding<T>> _bindings = new();
+
+        public static void Register(IEventBinding<T> binding) => _bindings.Add(binding);
+        public static void Deregister(IEventBinding<T> binding) => _bindings.Remove(binding);
+
+        public static void Raise(T @event) {
+            foreach (var binding in _bindings) {
+                binding.OnEvent.Invoke(@event);
+                binding.OnEventNoArgs.Invoke();
+            }
+        }
+
+        public static void Clear() => _bindings.Clear();
+    }
+}

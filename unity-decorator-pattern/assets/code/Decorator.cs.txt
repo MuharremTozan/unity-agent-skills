@@ -1,0 +1,61 @@
+namespace Standard.Patterns {
+    /// <summary>
+    /// Core decorator interface for wrapping and modifying values.
+    /// </summary>
+    public interface IDecorator<T> {
+        T GetValue();
+    }
+
+    /// <summary>
+    /// Base decorator implementation for numeric stat modifications.
+    /// Use this for buffs, debuffs, and dynamic stat calculations.
+    /// </summary>
+    public abstract class StatDecorator : IDecorator<float> {
+        protected IDecorator<float> _wrapped;
+
+        protected StatDecorator(IDecorator<float> wrapped) {
+            _wrapped = wrapped;
+        }
+
+        public abstract float GetValue();
+    }
+
+    /// <summary>
+    /// Concrete base stat (no decoration).
+    /// </summary>
+    public class BaseStat : IDecorator<float> {
+        private float _value;
+
+        public BaseStat(float value) {
+            _value = value;
+        }
+
+        public float GetValue() => _value;
+    }
+
+    /// <summary>
+    /// Percentage modifier decorator (e.g., +20% damage).
+    /// </summary>
+    public class PercentageModifier : StatDecorator {
+        private float _percentage;
+
+        public PercentageModifier(IDecorator<float> wrapped, float percentage) : base(wrapped) {
+            _percentage = percentage;
+        }
+
+        public override float GetValue() => _wrapped.GetValue() * (1 + _percentage);
+    }
+
+    /// <summary>
+    /// Flat modifier decorator (e.g., +10 armor).
+    /// </summary>
+    public class FlatModifier : StatDecorator {
+        private float _amount;
+
+        public FlatModifier(IDecorator<float> wrapped, float amount) : base(wrapped) {
+            _amount = amount;
+        }
+
+        public override float GetValue() => _wrapped.GetValue() + _amount;
+    }
+}

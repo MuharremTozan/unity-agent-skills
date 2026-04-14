@@ -1,0 +1,79 @@
+import subprocess
+import os
+import sys
+import re
+
+# This script finds added/modified lines in the current branch compared to upstream
+# and runs the DiagnosticScanner logic specifically on those changes.
+
+def get_git_diff():
+    try:
+        # Get diff of everything since upstream (commits + staged + unstaged)
+        try:
+            # First try the upstream tracking branch
+            diff_output = subprocess.check_output(["git", "diff", "@{u}"], stderr=subprocess.STDOUT).decode('utf-8')
+        except subprocess.CalledProcessError:
+            # Fallback to main if no upstream
+            diff_output = subprocess.check_output(["git", "diff", "main"], stderr=subprocess.STDOUT).decode('utf-8')
+        return diff_output
+    except Exception as e:
+        print(f"Error getting git diff: {e}")
+        return ""
+
+def parse_diff(diff_text):
+    files_changes = {}
+    current_file = None
+    
+    # Simple hunk parser
+    for line in diff_text.splitlines():
+        if line.startswith('+++ b/'):
+            current_file = line[6:]
+            files_changes[current_file] = []
+        elif line.startswith('+') and not line.startswith('+++'):
+            if current_file:
+                files_changes[current_file].append(line[1:])
+    
+    return files_changes
+
+def main():
+    diff_text = get_git_diff()
+    if not diff_text:
+        print("No changes detected since last push.")
+        return
+
+    changes = parse_diff(diff_text)
+    
+    # Import diagnostics from the main scanner
+    # (Assuming we are in the same directory as DiagnosticScanner.py.txt)
+    try:
+        from DiagnosticScanner import DIAGNOSTICS
+    except ImportError:
+        # Fallback if import fails (e.g. running from different dir)
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        # Handle the .txt extension if necessary, but here we'll just define them or read them
+        # Since we can't easily import a .txt file as a module, let's just re-define/read them
+        DIAGNOSTICS = [
+            {"id": "U001", "name": "Heavy Update Call", "regex": r"(Update|FixedUpdate|LateUpdate).*?({.*?(GetComponent|Find|SendMessage|FindObjectOfType|Camera\.main).*?})", "severity": "CRITICAL", "fix": "Cache references in Awake/Start."},
+            {"id": "U002", "name": "Memory Leak (Events)", "regex": r"(\+=).*?(?!.*(-=))", "severity": "HIGH", "fix": "All event subscriptions must be cleared in OnDisable/OnDestroy."},
+            {"id": "U003", "name": "Serialization Standard", "regex": r"\[SerializeField\]\s+public", "severity": "LOW", "fix": "Favor '[SerializeField] private' for inspector exposure."},
+            {"id": "U004", "name": "Magic Values", "regex": r"[^a-zA-Z0-9_](?<!LayerMask\.GetMask\()(?<!Color\()(?<!Vector[23]\()(?<!Time\.)(?<!Mathf\.)[0-9]{2,}(?!\.[0-9]+f|\s*L|\s*U)", "severity": "MEDIUM", "fix": "Replace magic numbers with named constants."},
+            {"id": "UI001", "name": "BEM Naming Violation", "regex": r'\.Q(<.*?>)?\("(?![a-z0-9]+(__[a-z0-9]+)?(--[a-z0-9]+)?")[^"]+"\)', "severity": "MEDIUM", "fix": "UI Toolkit elements must follow BEM naming."}
+        ]
+
+    for file_path, added_lines in changes.items():
+        if not file_path.endswith('.cs'): continue
+        
+        print(f"\n--- Scanning Hunks in: {file_path} ---")
+        combined_lines = "\n".join(added_lines)
+        
+        found = False
+        for diag in DIAGNOSTICS:
+            if re.search(diag["regex"], combined_lines, re.DOTALL | re.MULTILINE):
+                print(f"[{diag['severity']}] {diag['id']} - {diag['name']}: {diag['fix']}")
+                found = True
+        
+        if not found:
+            print("No issues found in new changes.")
+
+if __name__ == "__main__":
+    main()

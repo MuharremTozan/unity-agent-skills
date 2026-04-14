@@ -1,0 +1,16 @@
+using System;
+using UnityEngine;
+
+namespace Standard.Patterns.DI {
+    /// <summary>
+    /// Mark a field to be satisfied by the Dependency Injection system.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public class InjectAttribute : PropertyAttribute { }
+
+    /// <summary>
+    /// Mark a method or field to provide a dependency to the system.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
+    public class ProvideAttribute : Attribute { }
+}

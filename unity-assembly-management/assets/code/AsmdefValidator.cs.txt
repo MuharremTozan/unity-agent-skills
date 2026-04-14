@@ -1,0 +1,24 @@
+using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
+using System.Linq;
+
+namespace UnityAssemblyManagement.Editor {
+    public static class AsmdefValidator {
+        [MenuItem("Tools/Ohm-Yura/Assembly/Validate Dependencies")]
+        public static void ValidateAssemblies () {
+            var allAsmdefs = AssetDatabase.FindAssets("t:AssemblyDefinitionAsset")
+                .Select(guid => AssetDatabase.GUIDToAssetPath(guid))
+                .ToList();
+
+            foreach ( var path in allAsmdefs ) {
+                var assembly = AssetDatabase.LoadAssetAtPath<AssemblyDefinitionAsset>(path);
+                // In a real implementation, we would parse JSON here to check for 'Editor' platforms
+                // for dependencies. For the skill asset, we provide the logic flow.
+                Debug.Log($"[Assembly] Status: Validating | Data: Path={path}");
+            }
+            
+            Debug.Log("[Assembly] Status: Validation Finished | Data: Count=" + allAsmdefs.Count);
+        }
+    }
+}

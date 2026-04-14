@@ -1,0 +1,39 @@
+using UnityEngine;
+using UnityEngine.UIElements;
+using Standard.UI.Procedural;
+
+namespace Standard.Examples {
+    /// <summary>
+    /// Demonstrates procedurally building a UI panel with fluent extensions and a manipulator.
+    /// </summary>
+    public class ProceduralPanelExample : MonoBehaviour {
+        [SerializeField] private UIDocument uiDocument;
+        [SerializeField] private StyleSheet styleSheet;
+
+        private void OnEnable() {
+            var root = uiDocument.rootVisualElement;
+            root.Clear();
+            if (styleSheet != null) root.styleSheets.Add(styleSheet);
+
+            // Using "Option B: Fluent Extensions" to build hierarchy
+            var inventory = root.CreateChild<VisualElement>("inventory-container")
+                .WithName("InventoryPanel")
+                .WithClass("panel--main")
+                .WithManipulator(new DragManipulator()); // Makes the whole panel draggable
+
+            // Adding a header
+            inventory.CreateChild<Label>("panel__header")
+                .WithName("HeaderText")
+                .text = "PROCEUDURAL INVENTORY";
+
+            // Adding slots in a loop
+            var grid = inventory.CreateChild<VisualElement>("inventory__grid");
+            for (int i = 0; i < 9; i++) {
+                grid.CreateChild<VisualElement>("grid__slot")
+                    .CreateChild<VisualElement>("slot__icon");
+            }
+            
+            Debug.Log("[UI] Status: Procedural UI Built | Data: 1 Panel, 9 Slots");
+        }
+    }
+}
